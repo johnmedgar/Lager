@@ -1,9 +1,10 @@
 # Lager<sup>*</sup>
-[Report a bug](https://github.com/stemcellbioengineering/Lager/issues)
+[![Python application](https://github.com/stemcellbioengineering/Lager/actions/workflows/python-app.yml/badge.svg)](https://github.com/stemcellbioengineering/Lager/actions/workflows/python-app.yml)
+
 Record the parameters your functions, methods and classes are called with, as key-value pairs in a YAML log.
 Lager is built on Python's standard `logging` library and can be used as a decorator or as a wrapper.
 
-*has nothing to do with [lager](https://en.wikipedia.org/wiki/Lager)-style beer.
+*has nothing to do with [lager-style beer](https://en.wikipedia.org/wiki/Lager).
 
 ## Installation
 Clone the repository from https://github.com/stemcellbioengineering/Lager/. Then open your terminal, navigate to the root directory (contains the pyproject.toml file), and install the package and dependencies using:
@@ -32,8 +33,9 @@ def train(lr, epochs=10, **kwargs):
 class Client:
     def __init__(self, url, token, timeout=5.0):
         ...
-
-    @lager                      # record method calls too
+        
+    # record method calls too
+    @lager
     def get(self, path, retries=3):
         ...
 
@@ -44,12 +46,6 @@ logged_hypot = lager(math.hypot)
 # Wrap every function and class defined in a module
 import my_module
 lager_module(my_module)
-
-train(0.01, optimizer="adam")
-client = Client("https://example.com", token="s3cret")
-client.get("/status")
-logged_hypot(3, 4)
-my_module.some_function(42)
 
 # Read the log back as a list of dicts
 for entry in load_log("params.yaml"):
