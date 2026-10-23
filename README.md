@@ -1,13 +1,16 @@
-# lager
-
+# Lager<sup>*</sup>
+[Report a bug](https://github.com/stemcellbioengineering/Lager/issues)
 Record the parameters your functions, methods and classes are called with, as key-value pairs in a YAML log.
 Lager is built on Python's standard `logging` library and can be used as a decorator or as a wrapper.
 
-## Installation
+*has nothing to do with [lager](https://en.wikipedia.org/wiki/Lager)-style beer.
 
+## Installation
+Clone the repository from https://github.com/stemcellbioengineering/Lager/. Then open your terminal, navigate to the root directory (contains the pyproject.toml file), and install the package and dependencies using:
 ```bash
-pip install -e path/to/lager-param-recorder
+pip install .
 ```
+Optionally, install in editable mode `pip install -e .` for testing or development.
 
 Requires Python 3.8+ and PyYAML (installed automatically).
 
@@ -77,7 +80,7 @@ Each call adds one entry to a YAML list:
     timeout: 5.0
 ```
 
-The file stays valid YAML when appended to across runs (`configure(..., mode="a")`, the default).
+The file stays valid YAML when appended to across runs (`configure(..., mode="a")`).
 
 ## Options
 
@@ -99,3 +102,6 @@ The file stays valid YAML when appended to across runs (`configure(..., mode="a"
 - `lager_module` only affects calls made through the module (`my_module.func()`). Names imported with
   `from my_module import func` before wrapping stay unwrapped.
 - If recording fails, the wrapped call still runs normally.
+
+## License
+This project is licensed under the GNU General Public License v3.0.

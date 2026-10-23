@@ -1,16 +1,35 @@
 [build-system]
-requires = ["setuptools>=61"]
+requires = ["setuptools >= 69", "setuptools-scm >= 8"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "lager"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Record function, method and class call parameters to a YAML log via the logging library."
 requires-python = ">=3.8"
 dependencies = ["PyYAML>=5.1"]
+authors = [
+  {name = "John Edgar", email = "edgarjohnmichael@gmail.com"},
+]
+license-files = ["LICENSE"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python"
+]
+
+[project.urls]
+Respository = "https://github.com/stemcellbioengineering/Lager"
+Issues = "https://github.com/stemcellbioengineering/Lager/issues"
 
 [project.optional-dependencies]
 test = ["pytest"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools_scm.tag]
+prefix = "v"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

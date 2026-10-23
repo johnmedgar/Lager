@@ -89,7 +89,7 @@ class YamlFormatter(logging.Formatter):
 
 def configure(
     log_file: Union[str, os.PathLike] = DEFAULT_LOG_FILE,
-    mode: str = "a",
+    mode: str = "w",
     level: int = logging.INFO,
     propagate: bool = False,
 ) -> logging.Logger:
@@ -98,10 +98,10 @@ def configure(
     Replaces any handlers previously installed by lager.
 
     Args:
-        log_file: Path of the YAML file to write.
-        mode: ``"a"`` to append to an existing log, ``"w"`` to overwrite it.
-        level: Logging level for the lager logger.
-        propagate: Whether records also propagate to ancestor loggers.
+        log_file: Path of the YAML file to write (default: 'lager.yaml').
+        mode: ``"a"`` to append to an existing log, ``"w"`` to overwrite it (default: ``"w"``).
+        level: Logging level for the lager logger (default: ``logging.INFO``).
+        propagate: Whether records also propagate to ancestor loggers (default: False).
 
     Returns:
         The configured ``logging.Logger``.
