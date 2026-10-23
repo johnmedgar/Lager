@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lager"
+version = "0.1.0"
+description = "Record function, method and class call parameters to a YAML log via the logging library."
+requires-python = ">=3.8"
+dependencies = ["PyYAML>=5.1"]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

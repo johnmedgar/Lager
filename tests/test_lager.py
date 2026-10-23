@@ -1,0 +1,126 @@
+import asyncio
+import pathlib
+import types
+
+import pytest
+
+from lager import configure, lager, lager_module, load_log
+
+
+@pytest.fixture
+def log_file(tmp_path):
+    path = tmp_path / "log.yaml"
+    configure(path, mode="w")
+    return path
+
+
+def test_decorator_records_params_and_defaults(log_file):
+    @lager
+    def add(a, b=2, *rest, scale=1, **extra):
+        return (a + b) * scale
+
+    assert add(1, scale=3, note="hi") == 9
+
+    (entry,) = load_log(log_file)
+    assert entry["kind"] == "function"
+    assert entry["function"] == "add"
+    assert entry["params"] == {"a": 1, "b": 2, "scale": 3, "note": "hi"}
+
+
+def test_wrap_without_decorator_and_options(log_file):
+    def login(user, password, retries=3):
+        return user
+
+    wrapped = lager(login, exclude=["password"], include_defaults=False)
+    assert wrapped("ed", "secret") == "ed"
+
+    (entry,) = load_log(log_file)
+    assert entry["params"] == {"user": "ed"}
+
+
+def test_class_instantiation_and_methods(log_file):
+    @lager
+    class Model:
+        def __init__(self, layers, dropout=0.1):
+            self.layers = layers
+
+        @lager
+        def fit(self, data, epochs=5):
+            return epochs
+
+        @lager
+        @classmethod
+        def build(cls, size):
+            return cls(size)
+
+        @lager
+        @staticmethod
+        def helper(x):
+            return x
+
+    m = Model.build(3)
+    m.fit([1, 2], epochs=10)
+    Model.helper(path := pathlib.Path("a/b"))
+
+    entries = load_log(log_file)
+    assert [(e["kind"], e["qualname"]) for e in entries] == [
+        ("method", "test_class_instantiation_and_methods.<locals>.Model.build"),
+        ("class", "test_class_instantiation_and_methods.<locals>.Model"),
+        ("method", "test_class_instantiation_and_methods.<locals>.Model.fit"),
+        ("method", "test_class_instantiation_and_methods.<locals>.Model.helper"),
+    ]
+    assert entries[0]["params"] == {"size": 3}
+    assert entries[1]["function"] == "Model"
+    assert entries[1]["params"] == {"layers": 3, "dropout": 0.1}
+    assert entries[2]["params"] == {"data": [1, 2], "epochs": 10}
+    assert entries[3]["params"] == {"x": str(path)}
+
+
+def test_class_without_init(log_file):
+    @lager
+    class Empty:
+        pass
+
+    Empty()
+    (entry,) = load_log(log_file)
+    assert entry["kind"] == "class" and entry["params"] == {}
+
+
+def test_module_wrapping(log_file):
+    mod = types.ModuleType("fake_mod")
+    exec("def scale(x, factor=2):\n    return x * factor\n", mod.__dict__)
+    mod.scale.__module__ = "fake_mod"
+
+    lager_module(mod)
+    assert mod.scale(4) == 8
+    (entry,) = load_log(log_file)
+    assert entry["module"] == "fake_mod"
+    assert entry["params"] == {"x": 4, "factor": 2}
+
+
+def test_async_and_unserializable_values(log_file):
+    class Thing:
+        def __repr__(self):
+            return "<Thing>"
+
+    @lager
+    async def fetch(obj, opts=None):
+        return obj
+
+    asyncio.run(fetch(Thing(), opts={"k": (1, 2)}))
+    (entry,) = load_log(log_file)
+    assert entry["params"] == {"obj": "<Thing>", "opts": {"k": [1, 2]}}
+
+
+def test_append_mode_keeps_valid_yaml(tmp_path):
+    path = tmp_path / "log.yaml"
+
+    @lager
+    def f(x):
+        return x
+
+    configure(path, mode="w")
+    f(1)
+    configure(path, mode="a")
+    f(2)
+    assert [e["params"]["x"] for e in load_log(path)] == [1, 2]
