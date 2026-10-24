@@ -17,9 +17,9 @@ Example log entry::
 
 Usage::
 
-    from lager import lager, configure
+    from lager import lager, configure_lager
 
-    configure("params.yaml")          # optional, defaults to ./lager.yaml
+    configure_lager("params.yaml")          # optional, defaults to ./lager.yaml
 
     @lager
     def train(lr, epochs=10): ...
@@ -48,10 +48,10 @@ __all__ = [
     "LOGGER_NAME",
     "DEFAULT_LOG_FILE",
     "YamlFormatter",
-    "configure",
+    "configure_lager",
     "get_logger",
     "lager",
-    "lager_module",
+    "lagmod",
     "load_log",
 ]
 
@@ -87,7 +87,7 @@ class YamlFormatter(logging.Formatter):
         ).rstrip("\n")
 
 
-def configure(
+def configure_lager(
     log_file: Union[str, os.PathLike] = DEFAULT_LOG_FILE,
     mode: str = "w",
     level: int = logging.INFO,
@@ -112,7 +112,7 @@ def configure(
             logger.removeHandler(handler)
             handler.close()
 
-    handler = logging.FileHandler(log_file, mode=mode, encoding="utf-8")
+    handler = logging.FileHandler(log_file, mode=mode, encoding="utf-8", delay=True)
     handler.setFormatter(YamlFormatter())
     handler._lager_handler = True  # type: ignore[attr-defined]
     logger.addHandler(handler)
@@ -125,7 +125,7 @@ def get_logger() -> logging.Logger:
     """Return the lager logger, configuring the default file on first use."""
     logger = logging.getLogger(LOGGER_NAME)
     if not logger.handlers:
-        configure()
+        configure_lager()
     return logger
 
 
@@ -326,7 +326,7 @@ def lager(
 ):
     """Record the parameters a function, method or class is called with.
 
-    Can be used as ``@lager``, ``@lager(...)`` or ``lager(func)``.
+    Can be used as a decorator ``@lager`` or a wrapper ``lager(func)``.
 
     Args:
         target: The function, method, class or module to wrap.
@@ -348,7 +348,7 @@ def lager(
 
     def decorate(obj: Any) -> Any:
         if isinstance(obj, types.ModuleType):
-            return lager_module(obj, **opts)
+            return lagmod(obj, **opts)
         if inspect.isclass(obj):
             return _wrap_class(obj, **opts)
         if isinstance(obj, (staticmethod, classmethod)):
@@ -377,7 +377,7 @@ def lager(
     return decorate(target)
 
 
-def lager_module(
+def lagmod(
     module: types.ModuleType,
     *,
     include_private: bool = False,

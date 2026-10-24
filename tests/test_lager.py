@@ -4,13 +4,13 @@ import types
 
 import pytest
 
-from lager import configure, lager, lager_module, load_log
+from lager import configure_lager, lager, lagmod, load_log
 
 
 @pytest.fixture
 def log_file(tmp_path):
     path = tmp_path / "log.yaml"
-    configure(path, mode="w")
+    configure_lager(path, mode="w")
     return path
 
 
@@ -91,7 +91,7 @@ def test_module_wrapping(log_file):
     exec("def scale(x, factor=2):\n    return x * factor\n", mod.__dict__)
     mod.scale.__module__ = "fake_mod"
 
-    lager_module(mod)
+    lagmod(mod)
     assert mod.scale(4) == 8
     (entry,) = load_log(log_file)
     assert entry["module"] == "fake_mod"
@@ -119,8 +119,8 @@ def test_append_mode_keeps_valid_yaml(tmp_path):
     def f(x):
         return x
 
-    configure(path, mode="w")
+    configure_lager(path, mode="w")
     f(1)
-    configure(path, mode="a")
+    configure_lager(path, mode="a")
     f(2)
     assert [e["params"]["x"] for e in load_log(path)] == [1, 2]

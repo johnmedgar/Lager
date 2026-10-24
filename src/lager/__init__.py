@@ -4,10 +4,10 @@ from .lager import (
     DEFAULT_LOG_FILE,
     LOGGER_NAME,
     YamlFormatter,
-    configure,
+    configure_lager,
     get_logger,
     lager,
-    lager_module,
+    lagmod,
     load_log,
 )
 
@@ -15,9 +15,9 @@ __all__ = [
     "DEFAULT_LOG_FILE",
     "LOGGER_NAME",
     "YamlFormatter",
-    "configure",
+    "configure_lager",
     "get_logger",
     "lager",
-    "lager_module",
+    "lagmod",
     "load_log",
 ]

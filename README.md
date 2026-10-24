@@ -7,21 +7,25 @@ Lager is built on Python's standard `logging` library and can be used as a decor
 *has nothing to do with [lager-style beer](https://en.wikipedia.org/wiki/Lager).
 
 ## Installation
-Clone the repository from https://github.com/stemcellbioengineering/Lager/. Then open your terminal, navigate to the root directory (contains the pyproject.toml file), and install the package and dependencies using:
+[Clone the Lager repository](https://github.com/stemcellbioengineering/Lager/) then use the terminal to navigate to the root directory (containing the pyproject.toml file). Install the package and dependencies using:
 ```bash
 pip install .
 ```
 Optionally, install in editable mode `pip install -e .` for testing or development.
 
-Requires Python 3.8+ and PyYAML (installed automatically).
+### Dependencies
+Requires Python >3.8 and PyYAML (installed automatically).
 
 ## Usage
 
-```python
-from lager import lager, lager_module, configure, load_log
+For logging parameters in functions, methods, or classes:
 
-# Optional: choose the log file. Without this, calls are appended to ./lager.yaml
-configure("params.yaml", mode="w")
+```python
+from lager import lager, configure_lager, load_log
+
+# Optional: choose the log file. Otherwise, calls are written to ./lager.yaml
+configure_lager("params.yaml")
+
 
 # Decorate a function
 @lager
@@ -39,17 +43,25 @@ class Client:
     def get(self, path, retries=3):
         ...
 
-# Wrap an existing function without decorator syntax
+# Wrap an existing function without the decorator syntax
 import math
-logged_hypot = lager(math.hypot)
+math_hypot = lager(math.hypot)
+result = math_hypot(1,4,6)   # call math_hypot exactly like math.hypot
 
-# Wrap every function and class defined in a module
-import my_module
-lager_module(my_module)
 
 # Read the log back as a list of dicts
 for entry in load_log("params.yaml"):
     print(entry["function"], entry["params"])
+```
+
+Lager can also wrap every function and class defined in a module:
+
+```python
+import my_module
+from lager import lagmod
+
+lagmod(my_module)
+my_module.func(...)   # call functions or classes within the module
 ```
 
 ## Log format
@@ -76,11 +88,11 @@ Each call adds one entry to a YAML list:
     timeout: 5.0
 ```
 
-The file stays valid YAML when appended to across runs (`configure(..., mode="a")`).
+The file stays valid YAML when appended to across runs (`configure_lager(..., mode="a")`).
 
 ## Options
 
-`lager(...)` and `lager_module(...)` accept:
+`lager(...)` and `lagmod(...)` accept:
 
 | Option             | Default         | Description                                          |
 | ------------------ | --------------- | ---------------------------------------------------- |
@@ -89,13 +101,13 @@ The file stays valid YAML when appended to across runs (`configure(..., mode="a"
 | `level`            | `logging.INFO`  | Logging level of the emitted records.                |
 | `logger`           | `"lager"` logger | Send records to a different logger.                 |
 
-`lager_module` also accepts `include_private=True` to wrap names starting with `_`.
+`lagmod` also accepts `include_private=True` to wrap names starting with `_`.
 
 ## Notes
 
 - `self` and `cls` are not recorded; `**kwargs` are flattened into the parameters.
 - Values YAML can't represent directly are stored as text (paths, dates, bytes) or as their `repr()`.
-- `lager_module` only affects calls made through the module (`my_module.func()`). Names imported with
+- `lagmod` only affects calls made through the module (`my_module.func()`). Names imported with
   `from my_module import func` before wrapping stay unwrapped.
 - If recording fails, the wrapped call still runs normally.
 
