@@ -9,6 +9,7 @@ from .lager import (
     lager,
     lagmod,
     load_log,
+    note,
 )
 
 __all__ = [
@@ -20,4 +21,5 @@ __all__ = [
     "lager",
     "lagmod",
     "load_log",
+    "note",
 ]

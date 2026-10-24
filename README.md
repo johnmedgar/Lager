@@ -64,6 +64,35 @@ lagmod(my_module)
 my_module.func(...)   # call functions or classes within the module
 ```
 
+### Logging notes and other values
+
+Use `note` to write a message and/or extra values to the same log, in order with the recorded calls:
+
+```python
+import logging
+from lager import note
+
+note("Loaded sample")
+note("QC done", n_cells=9832, thresholds={"min_genes": 100})
+note(level=logging.WARNING, flagged=3)   # the message is optional
+```
+
+Keyword values are stored as key-value pairs under `data`:
+
+```yaml
+- timestamp: '2026-10-24T09:12:03.513402'
+  kind: note
+  level: INFO
+  message: QC done
+  data:
+    n_cells: 9832
+    thresholds:
+      min_genes: 100
+```
+
+`note` accepts `level` (default `logging.INFO`; notes below the configured level are dropped) and `logger`,
+so these two names can't be used as data keys. `message` and `data` are omitted when not given.
+
 ## Log format
 
 Each call adds one entry to a YAML list:

@@ -1,10 +1,11 @@
 import asyncio
+import logging
 import pathlib
 import types
 
 import pytest
 
-from lager import configure_lager, lager, lagmod, load_log
+from lager import configure_lager, lager, lagmod, load_log, note
 
 
 @pytest.fixture
@@ -124,3 +125,31 @@ def test_append_mode_keeps_valid_yaml(tmp_path):
     configure_lager(path, mode="a")
     f(2)
     assert [e["params"]["x"] for e in load_log(path)] == [1, 2]
+
+
+def test_note_writes_message_and_data_alongside_calls(log_file):
+    @lager
+    def filter_cells(adata, min_genes=100):
+        return adata
+
+    note("Loaded sample")
+    filter_cells("adata")
+    note("QC done", n_cells=9832, thresholds={"min_genes": (100, 200)}, out=pathlib.Path("a/b"))
+    note(level=logging.WARNING, flagged=3)
+    note("dropped", level=logging.DEBUG)  # below the configured INFO level
+
+    entries = load_log(log_file)
+    assert [e["kind"] for e in entries] == ["note", "function", "note", "note"]
+    for e in (entries[0], entries[2], entries[3]):
+        assert set(e) <= {"timestamp", "kind", "level", "message", "data"}
+    assert entries[0]["level"] == "INFO"
+    assert entries[0]["message"] == "Loaded sample"
+    assert "data" not in entries[0]
+    assert entries[2]["data"] == {
+        "n_cells": 9832,
+        "thresholds": {"min_genes": [100, 200]},
+        "out": str(pathlib.Path("a/b")),
+    }
+    assert entries[3]["level"] == "WARNING"
+    assert "message" not in entries[3]
+    assert entries[3]["data"] == {"flagged": 3}

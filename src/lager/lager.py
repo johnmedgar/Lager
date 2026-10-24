@@ -53,6 +53,7 @@ __all__ = [
     "lager",
     "lagmod",
     "load_log",
+    "note",
 ]
 
 LOGGER_NAME = "lager"
@@ -127,6 +128,41 @@ def get_logger() -> logging.Logger:
     if not logger.handlers:
         configure_lager()
     return logger
+
+
+def note(
+    message: Optional[str] = None,
+    /,
+    *,
+    level: int = logging.INFO,
+    logger: Optional[logging.Logger] = None,
+    **data: Any,
+) -> None:
+    """Write a free-form entry, with optional structured values, to the lager log.
+
+    Example::
+
+        note("QC done", n_cells=9832, thresholds={"min_genes": 100})
+
+    Args:
+        message: Optional text describing the entry.
+        level: Logging level of the emitted record.
+        logger: Logger to use; defaults to the ``"lager"`` logger.
+        **data: Values recorded as key-value pairs under ``data``.
+    """
+    logger = logger or get_logger()
+    if not logger.isEnabledFor(level):
+        return
+    entry: dict[str, Any] = {
+        "timestamp": _dt.datetime.now().isoformat(),
+        "kind": "note",
+        "level": logging.getLevelName(level),
+    }
+    if message is not None:
+        entry["message"] = str(message)
+    if data:
+        entry["data"] = _to_yaml_safe(data)
+    logger.log(level, "%s", message or "note", extra={"lager": entry})
 
 
 def load_log(log_file: Union[str, os.PathLike] = DEFAULT_LOG_FILE) -> list[dict]:
