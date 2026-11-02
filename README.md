@@ -1,8 +1,7 @@
 # Lager<sup>*</sup>
 [![Python application](https://github.com/stemcellbioengineering/Lager/actions/workflows/python-app.yml/badge.svg)](https://github.com/stemcellbioengineering/Lager/actions/workflows/python-app.yml)
 
-Record the parameters your functions, methods and classes are called with, as key-value pairs in a YAML log.
-Lager is built on Python's standard `logging` library and can be used as a decorator or as a wrapper.
+Record the parameters your functions, methods and classes are called with, as key-value pairs in a YAML log. Lager is built on Python's standard `logging` library and can be used as a decorator or as a wrapper.
 
 *has nothing to do with [lager-style beer](https://en.wikipedia.org/wiki/Lager).
 
@@ -23,7 +22,7 @@ For logging parameters in functions, methods, or classes:
 ```python
 from lager import lager, configure_lager, load_log
 
-# Optional: choose the log file. Otherwise, calls are written to ./lager.yaml
+# Optional: provide a name for the log file. Otherwise, calls are written to ./lager.yaml
 configure_lager("params.yaml")
 
 
@@ -48,6 +47,10 @@ import math
 math_hypot = lager(math.hypot)
 result = math_hypot(1,4,6)   # call math_hypot exactly like math.hypot
 
+# This works too
+import math
+result = lager(math.hypot)(1,4,6)
+
 
 # Read the log back as a list of dicts
 for entry in load_log("params.yaml"):
@@ -66,7 +69,7 @@ my_module.func(...)   # call functions or classes within the module
 
 ### Logging notes and other values
 
-Use `note` to write a message and/or extra values to the same log, in order with the recorded calls:
+Use `note` to write a message and/or extra values to the same log:
 
 ```python
 import logging
@@ -74,7 +77,6 @@ from lager import note
 
 note("Loaded sample")
 note("QC done", n_cells=9832, thresholds={"min_genes": 100})
-note(level=logging.WARNING, flagged=3)   # the message is optional
 ```
 
 Keyword values are stored as key-value pairs under `data`:
@@ -90,8 +92,7 @@ Keyword values are stored as key-value pairs under `data`:
       min_genes: 100
 ```
 
-`note` accepts `level` (default `logging.INFO`; notes below the configured level are dropped) and `logger`,
-so these two names can't be used as data keys. `message` and `data` are omitted when not given.
+`note` accepts `level` (default `logging.INFO`; notes below the configured level are dropped) and `logger`, so these two names can't be used as data keys. `message` and `data` are omitted when not given.
 
 ## Log format
 
@@ -117,7 +118,7 @@ Each call adds one entry to a YAML list:
     timeout: 5.0
 ```
 
-The file stays valid YAML when appended to across runs (`configure_lager(..., mode="a")`).
+By default, a new YAML is created each time a script is run, overwriting any existing (`mode="w"`). The YAML file can also be appended to by setting the mode in `configure_lager(..., mode="a")`. This is useful when re-running scripts with different parameters to keep track of the parameters in each run.
 
 ## Options
 
@@ -128,7 +129,7 @@ The file stays valid YAML when appended to across runs (`configure_lager(..., mo
 | `exclude`          | `()`            | Parameter names never written to the log.            |
 | `include_defaults` | `True`          | Record parameters left at their default values.      |
 | `level`            | `logging.INFO`  | Logging level of the emitted records.                |
-| `logger`           | `"lager"` logger | Send records to a different logger.                 |
+| `logger`           | `"lager"`       | Send records to a different logger.                 |
 
 `lagmod` also accepts `include_private=True` to wrap names starting with `_`.
 
