@@ -1,9 +1,10 @@
-# Lager<sup>*</sup>
+# Lager
 [![Python application](https://github.com/stemcellbioengineering/Lager/actions/workflows/python-app.yml/badge.svg)](https://github.com/stemcellbioengineering/Lager/actions/workflows/python-app.yml)
 
 Record the parameters your functions, methods and classes are called with, as key-value pairs in a YAML log. Lager is built on Python's standard `logging` library and can be used as a decorator or as a wrapper.
 
-*has nothing to do with [lager-style beer](https://en.wikipedia.org/wiki/Lager).
+
+*Created with the help of Claude Code*
 
 ## Installation
 [Clone the Lager repository](https://github.com/stemcellbioengineering/Lager/) then use the terminal to navigate to the root directory (containing the pyproject.toml file). Install the package and dependencies using:
