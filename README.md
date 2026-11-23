@@ -4,8 +4,6 @@
 Record the parameters your functions, methods and classes are called with, as key-value pairs in a YAML log. Lager is built on Python's standard `logging` library and can be used as a decorator or as a wrapper.
 
 
-*Created with the help of Claude Code*
-
 ## Installation
 [Clone the Lager repository](https://github.com/stemcellbioengineering/Lager/) then use the terminal to navigate to the root directory (containing the pyproject.toml file). Install the package and dependencies using:
 ```bash
@@ -56,16 +54,6 @@ result = lager(math.hypot)(1,4,6)
 # Read the log back as a list of dicts
 for entry in load_log("params.yaml"):
     print(entry["function"], entry["params"])
-```
-
-Lager can also wrap every function and class defined in a module:
-
-```python
-import my_module
-from lager import lagmod
-
-lagmod(my_module)
-my_module.func(...)   # call functions or classes within the module
 ```
 
 ### Logging notes and other values
@@ -132,14 +120,12 @@ By default, a new YAML is created each time a script is run, overwriting any exi
 | `level`            | `logging.INFO`  | Logging level of the emitted records.                |
 | `logger`           | `"lager"`       | Send records to a different logger.                 |
 
-`lagmod` also accepts `include_private=True` to wrap names starting with `_`.
+
 
 ## Notes
 
 - `self` and `cls` are not recorded; `**kwargs` are flattened into the parameters.
 - Values YAML can't represent directly are stored as text (paths, dates, bytes) or as their `repr()`.
-- `lagmod` only affects calls made through the module (`my_module.func()`). Names imported with
-  `from my_module import func` before wrapping stay unwrapped.
 - If recording fails, the wrapped call still runs normally.
 
 ## License

@@ -5,7 +5,7 @@ import types
 
 import pytest
 
-from lager import configure_lager, lager, lagmod, load_log, note
+from lager import configure_lager, lager, load_log, note
 
 
 @pytest.fixture
@@ -87,18 +87,6 @@ def test_class_without_init(log_file):
     assert entry["kind"] == "class" and entry["params"] == {}
 
 
-def test_module_wrapping(log_file):
-    mod = types.ModuleType("fake_mod")
-    exec("def scale(x, factor=2):\n    return x * factor\n", mod.__dict__)
-    mod.scale.__module__ = "fake_mod"
-
-    lagmod(mod)
-    assert mod.scale(4) == 8
-    (entry,) = load_log(log_file)
-    assert entry["module"] == "fake_mod"
-    assert entry["params"] == {"x": 4, "factor": 2}
-
-
 def test_async_and_unserializable_values(log_file):
     class Thing:
         def __repr__(self):
@@ -129,12 +117,12 @@ def test_append_mode_keeps_valid_yaml(tmp_path):
 
 def test_note_writes_message_and_data_alongside_calls(log_file):
     @lager
-    def filter_cells(adata, min_genes=100):
-        return adata
+    def filter_set(data, min_val=100):
+        return data
 
-    note("Loaded sample")
-    filter_cells("adata")
-    note("QC done", n_cells=9832, thresholds={"min_genes": (100, 200)}, out=pathlib.Path("a/b"))
+    note("File loaded")
+    filter_set("data")
+    note("Job done", n_samples=9832, thresholds={"min_vals": (100, 200)}, out=pathlib.Path("a/b"))
     note(level=logging.WARNING, flagged=3)
     note("dropped", level=logging.DEBUG)  # below the configured INFO level
 
@@ -143,11 +131,11 @@ def test_note_writes_message_and_data_alongside_calls(log_file):
     for e in (entries[0], entries[2], entries[3]):
         assert set(e) <= {"timestamp", "kind", "level", "message", "data"}
     assert entries[0]["level"] == "INFO"
-    assert entries[0]["message"] == "Loaded sample"
+    assert entries[0]["message"] == "File loaded"
     assert "data" not in entries[0]
     assert entries[2]["data"] == {
-        "n_cells": 9832,
-        "thresholds": {"min_genes": [100, 200]},
+        "n_samples": 9832,
+        "thresholds": {"min_vals": [100, 200]},
         "out": str(pathlib.Path("a/b")),
     }
     assert entries[3]["level"] == "WARNING"

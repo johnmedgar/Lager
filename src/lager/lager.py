@@ -51,7 +51,6 @@ __all__ = [
     "configure_lager",
     "get_logger",
     "lager",
-    "lagmod",
     "load_log",
     "note",
 ]
@@ -78,14 +77,18 @@ class YamlFormatter(logging.Formatter):
         entry = getattr(record, "lager", None)
         if entry is None:
             entry = {
-                "timestamp": _dt.datetime.fromtimestamp(record.created).isoformat(),
+                "timestamp": _dt.datetime.fromtimestamp(record.created).strftime('%Y-%m-%d %H:%M:%S'),
                 "level": record.levelname,
                 "message": record.getMessage(),
             }
         # Dumping as a one-element list makes concatenated entries a valid YAML list.
         return yaml.safe_dump(
-            [entry], sort_keys=False, default_flow_style=False, allow_unicode=True
-        ).rstrip("\n")
+            [entry],
+            sort_keys=False,
+            default_flow_style=None, #False,
+            allow_unicode=True,
+            indent=2
+        )#.rstrip("\n")
 
 
 def configure_lager(
@@ -154,7 +157,7 @@ def note(
     if not logger.isEnabledFor(level):
         return
     entry: dict[str, Any] = {
-        "timestamp": _dt.datetime.now().isoformat(),
+        "timestamp": _dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), #.isoformat(),
         "kind": "note",
         "level": logging.getLevelName(level),
     }
@@ -262,7 +265,7 @@ def _emit(
         return
     name = getattr(target, "__name__", repr(target))
     entry = {
-        "timestamp": _dt.datetime.now().isoformat(),
+        "timestamp": _dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), #.isoformat(),
         "kind": kind,
         "function": name,
         "qualname": getattr(target, "__qualname__", name),
@@ -321,8 +324,10 @@ def _wrap_class(cls: type, **opts: Any) -> type:
         # (covers __new__-based constructors).
         sig = _signature(cls)
 
-        def init(self, *args, **kwargs):
+        def init(self):
             object.__init__(self)
+        # def init(self, *args, **kwargs):
+        #     object.__init__(self)
 
         if sig is not None:
             self_param = inspect.Parameter("self", inspect.Parameter.POSITIONAL_ONLY)
@@ -365,7 +370,7 @@ def lager(
     Can be used as a decorator ``@lager`` or a wrapper ``lager(func)``.
 
     Args:
-        target: The function, method, class or module to wrap.
+        target: The function, method, or class to wrap.
         logger: Logger to use; defaults to the ``"lager"`` logger.
         level: Logging level of the emitted records.
         include_defaults: Also record parameters left at their default value.
@@ -383,8 +388,6 @@ def lager(
     }
 
     def decorate(obj: Any) -> Any:
-        if isinstance(obj, types.ModuleType):
-            return lagmod(obj, **opts)
         if inspect.isclass(obj):
             return _wrap_class(obj, **opts)
         if isinstance(obj, (staticmethod, classmethod)):
@@ -411,42 +414,3 @@ def lager(
     if target is None:
         return decorate
     return decorate(target)
-
-
-def lagmod(
-    module: types.ModuleType,
-    *,
-    include_private: bool = False,
-    **opts: Any,
-) -> types.ModuleType:
-    """Wrap every function and class defined in ``module`` in place.
-
-    Only objects whose ``__module__`` matches the module are wrapped, so
-    re-exported names from other modules are left untouched. Calls made via
-    ``module.func(...)`` are then recorded.
-
-    Args:
-        module: The imported module object.
-        include_private: Also wrap names starting with an underscore.
-        **opts: Options forwarded to :func:`lager` (``logger``, ``level``,
-            ``include_defaults``, ``exclude``).
-    """
-    opts["exclude"] = frozenset(opts.get("exclude", ()))
-    opts.setdefault("logger", None)
-    opts.setdefault("level", logging.INFO)
-    opts.setdefault("include_defaults", True)
-
-    for name, obj in list(vars(module).items()):
-        if name.startswith("_") and not include_private:
-            continue
-        if getattr(obj, "__module__", None) != module.__name__:
-            continue
-        if inspect.isclass(obj):
-            _wrap_class(obj, **opts)
-        elif inspect.isfunction(obj) and not getattr(obj, "__lager_wrapped__", False):
-            setattr(
-                module,
-                name,
-                _wrap_function(obj, kind="function", record_target=obj, skip_first=False, **opts),
-            )
-    return module
