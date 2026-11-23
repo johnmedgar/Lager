@@ -71,14 +71,14 @@ note("QC done", n_cells=9832, thresholds={"min_genes": 100})
 Keyword values are stored as key-value pairs under `data`:
 
 ```yaml
-- timestamp: '2026-10-24T09:12:03.513402'
-  kind: note
-  level: INFO
-  message: QC done
-  data:
-    n_cells: 9832
-    thresholds:
-      min_genes: 100
+- timestamp: '2026-10-24 09:12:03'
+    kind: note
+    level: INFO
+    message: QC done
+    data:
+      n_cells: 9832
+      thresholds:
+        min_genes: 100
 ```
 
 `note` accepts `level` (default `logging.INFO`; notes below the configured level are dropped) and `logger`, so these two names can't be used as data keys. `message` and `data` are omitted when not given.
@@ -88,30 +88,30 @@ Keyword values are stored as key-value pairs under `data`:
 Each call adds one entry to a YAML list:
 
 ```yaml
-- timestamp: '2026-10-23T08:26:20.095749'
-  kind: function
-  function: train
-  qualname: train
-  module: __main__
-  params:
-    lr: 0.01
-    epochs: 10
-    optimizer: adam
-- timestamp: '2026-10-23T08:26:20.096248'
-  kind: class
-  function: Client
-  qualname: Client
-  module: __main__
-  params:
-    url: https://example.com
-    timeout: 5.0
+- timestamp: '2026-10-23 08:26:20'
+    kind: function
+    function: train
+    qualname: train
+    module: __main__
+    params:
+      lr: 0.01
+      epochs: 10
+      optimizer: adam
+    
+- timestamp: '2026-10-23 08:26:20'
+    kind: class
+    function: Client
+    qualname: Client
+    module: __main__
+    params:
+      url: https://example.com
+      timeout: 5.0
 ```
 
 By default, a new YAML is created each time a script is run, overwriting any existing (`mode="w"`). The YAML file can also be appended to by setting the mode in `configure_lager(..., mode="a")`. This is useful when re-running scripts with different parameters to keep track of the parameters in each run.
 
 ## Options
 
-`lager(...)` and `lagmod(...)` accept:
 
 | Option             | Default         | Description                                          |
 | ------------------ | --------------- | ---------------------------------------------------- |

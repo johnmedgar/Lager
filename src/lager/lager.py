@@ -6,14 +6,14 @@ file can be appended to indefinitely and still be loaded with ``yaml.safe_load``
 
 Example log entry::
 
-    - timestamp: '2026-10-23T08:15:00.123456'
-      kind: function
-      function: train
-      qualname: train
-      module: __main__
-      params:
-        lr: 0.001
-        epochs: 10
+    - timestamp: '2026-10-23 08:15:00'
+        kind: function
+        function: train
+        qualname: train
+        module: __main__
+        params:
+          lr: 0.001
+          epochs: 10
 
 Usage::
 
@@ -38,7 +38,7 @@ import functools
 import inspect
 import logging
 import os
-import types
+#import types
 from collections.abc import Iterable, Mapping
 from typing import Any, Callable, Optional, TypeVar, Union, overload
 
