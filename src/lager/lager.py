@@ -77,7 +77,7 @@ class YamlFormatter(logging.Formatter):
         entry = getattr(record, "lager", None)
         if entry is None:
             entry = {
-                "timestamp": _dt.datetime.fromtimestamp(record.created).strftime('%Y-%m-%d %H:%M:%S'),
+                "timestamp": _dt.datetime.fromtimestamp(record.created).strftime('%Y-%m-%d %H:%M:%S'), #.isoformat(),
                 "level": record.levelname,
                 "message": record.getMessage(),
             }
