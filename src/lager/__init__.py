@@ -7,7 +7,6 @@ from .lager import (
     configure_lager,
     get_logger,
     lager,
-    lagmod,
     load_log,
     note,
 )
@@ -19,7 +18,6 @@ __all__ = [
     "configure_lager",
     "get_logger",
     "lager",
-    "lagmod",
     "load_log",
     "note",
 ]
