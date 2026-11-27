@@ -126,9 +126,13 @@ def configure_lager(
 
 
 def get_logger() -> logging.Logger:
-    """Return the lager logger, configuring the default file on first use."""
+    """Return the lager logger, configuring the default file on first use.
+
+    Handlers attached by other code do not count as configuration: lager's own
+    YAML handler is installed unless :func:`configure_lager` already added it.
+    """
     logger = logging.getLogger(LOGGER_NAME)
-    if not logger.handlers:
+    if not any(getattr(h, "_lager_handler", False) for h in logger.handlers):
         configure_lager()
     return logger
 
@@ -324,10 +328,8 @@ def _wrap_class(cls: type, **opts: Any) -> type:
         # (covers __new__-based constructors).
         sig = _signature(cls)
 
-        def init(self):
+        def init(self, *args, **kwargs):
             object.__init__(self)
-        # def init(self, *args, **kwargs):
-        #     object.__init__(self)
 
         if sig is not None:
             self_param = inspect.Parameter("self", inspect.Parameter.POSITIONAL_ONLY)
