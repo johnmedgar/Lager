@@ -5,14 +5,15 @@ Record the parameters your functions, methods and classes are called with, as ke
 
 
 ## Installation
-[Clone the Lager repository](https://github.com/stemcellbioengineering/Lager/) then use the terminal to navigate to the root directory (containing the pyproject.toml file). Install the package and dependencies using:
-```bash
-pip install .
-```
-Optionally, install in editable mode `pip install -e .` for testing or development.
 
-### Dependencies
-Requires Python >3.8 and PyYAML (installed automatically).
+Requires `Python >=3.11` and `PyYAML` (installed automatically).
+
+```bash
+# Using uv
+uv add git+https://github.com/johnmedgar/Lager.git
+# Or pip
+pip install git+https://github.com/johnmedgar/Lager.git
+```
 
 ## Usage
 
