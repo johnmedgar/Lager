@@ -1,5 +1,5 @@
 # Lager
-[![Python application](https://github.com/stemcellbioengineering/Lager/actions/workflows/python-app.yml/badge.svg)](https://github.com/stemcellbioengineering/Lager/actions/workflows/python-app.yml)
+[![Tests](https://github.com/johnmedgar/Lager/actions/workflows/tests.yml/badge.svg)](https://github.com/johnmedgar/Lager/actions/workflows/tests.yml)
 
 Record the parameters your functions, methods and classes are called with, as key-value pairs in a YAML log. Lager is built on Python's standard `logging` library and can be used as a decorator or as a wrapper.
 
