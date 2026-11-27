@@ -23,8 +23,15 @@ lager_module = importlib.import_module("lager.lager")
 
 
 @pytest.fixture(autouse=True)
-def clean_logger() -> Iterator[None]:
-    """Detach and close every handler so tests never share logging state."""
+def clean_logger(
+    tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> Iterator[None]:
+    """Isolate each test: run in a temp dir and reset the lager logger.
+
+    The temp working directory keeps the default ``lager.yaml`` out of the repo
+    when a test uses a wrapped callable without configuring a log file.
+    """
+    monkeypatch.chdir(tmp_path)
 
     def reset() -> None:
         logger = logging.getLogger(LOGGER_NAME)
@@ -512,6 +519,30 @@ def test_plain_log_records_are_written_as_valid_yaml(
     assert entry["level"] == "WARNING"
     assert entry["message"] == "disk full"
     assert set(entry) == {"timestamp", "level", "message"}
+
+
+def test_entries_are_separated_by_one_blank_line_and_indented_two_spaces(
+    log_file: pathlib.Path,
+) -> None:
+    @lager
+    def train(lr, epochs=10):
+        return lr
+
+    train(0.01)
+    note("done", n=3)
+    train(0.02)
+
+    text = log_file.read_bytes().decode("utf-8").replace("\r\n", "\n")
+    assert text.endswith("\n\n") and not text.endswith("\n\n\n")
+    entries = text.rstrip("\n").split("\n\n")
+    assert len(entries) == 3
+    for entry in entries:
+        first, second, *rest = entry.splitlines()
+        assert first.startswith("- timestamp: ")
+        assert second.startswith("  kind: ")
+        # Every line after the timestamp is indented at least two spaces.
+        assert all(line.startswith("  ") for line in rest)
+        assert not any(line == "" for line in rest)
 
 
 def test_log_file_is_a_single_yaml_list(log_file: pathlib.Path) -> None:

@@ -72,13 +72,12 @@ Keyword values are stored as key-value pairs under `data`:
 
 ```yaml
 - timestamp: '2026-10-24 09:12:03'
-    kind: note
-    level: INFO
-    message: QC done
-    data:
-      n_cells: 9832
-      thresholds:
-        min_genes: 100
+  kind: note
+  level: INFO
+  message: QC done
+  data:
+    n_cells: 9832
+    thresholds: {min_genes: 100}
 ```
 
 `note` accepts `level` (default `logging.INFO`; notes below the configured level are dropped) and `logger`, so these two names can't be used as data keys. `message` and `data` are omitted when not given.
@@ -89,24 +88,21 @@ Each call adds one entry to a YAML list:
 
 ```yaml
 - timestamp: '2026-10-23 08:26:20'
-    kind: function
-    function: train
-    qualname: train
-    module: __main__
-    params:
-      lr: 0.01
-      epochs: 10
-      optimizer: adam
-    
+  kind: function
+  function: train
+  qualname: train
+  module: __main__
+  params: {lr: 0.01, epochs: 10, optimizer: adam}
+
 - timestamp: '2026-10-23 08:26:20'
-    kind: class
-    function: Client
-    qualname: Client
-    module: __main__
-    params:
-      url: https://example.com
-      timeout: 5.0
+  kind: class
+  function: Client
+  qualname: Client
+  module: __main__
+  params: {url: 'https://example.com', timeout: 5.0}
 ```
+
+Entries are separated by one empty line. Collections containing only simple values, such as a parameter dictionary or a long list of numbers, are written inline (`[0, 1, 2, ...]`) rather than one element per line; very long lists wrap onto indented continuation lines at about 80 characters, which is still valid YAML.
 
 By default, a new YAML is created each time a script is run, overwriting any existing (`mode="w"`). The YAML file can also be appended to by setting the mode in `configure_lager(..., mode="a")`. This is useful when re-running scripts with different parameters to keep track of the parameters in each run.
 
